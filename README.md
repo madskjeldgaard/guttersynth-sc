@@ -2,7 +2,7 @@
 
 Author: Mads Kjeldgaard & Scott Carver
 
-Gutter synthesis, a physical ish synth using coupled duffing oscillators
+Gutter synthesis, a physical ish synth using coupled duffing oscillators. A port of [Tom Mudd's Max/Java program](https://github.com/tommmmudd/guttersynthesis).
 
 ### Requirements
 
