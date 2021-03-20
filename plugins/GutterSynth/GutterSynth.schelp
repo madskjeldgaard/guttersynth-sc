@@ -1,0 +1,26 @@
+class:: GutterSynth
+summary:: Gutter synthesis, a physical ish synth using coupled duffing oscillators
+related:: TODO
+categories:: UGens>TODO
+
+description::
+
+Gutter synthesis, a physical ish synth using coupled duffing oscillators
+
+
+classmethods::
+
+method::ar, kr
+
+argument::TODO
+
+argument::TODO
+
+
+examples::
+
+code::
+
+{ GutterSynth.ar(/* TODO */) }.play
+
+::
