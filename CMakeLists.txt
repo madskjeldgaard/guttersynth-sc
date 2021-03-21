@@ -9,7 +9,13 @@
 cmake_minimum_required(VERSION 3.5)
 set(project_name "GutterSynth")
 set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake_modules ${CMAKE_MODULE_PATH})
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 17)
+
+# Set compiler pickyness for Unix builds
+# ... This picks up a ton of extra little things
+if(CMAKE_COMPILER_IS_GNUCXX)
+  add_compile_options(-Wall -Wextra -pedantic)
+endif(CMAKE_COMPILER_IS_GNUCXX)
 
 ####################################################################################################
 # load modules
