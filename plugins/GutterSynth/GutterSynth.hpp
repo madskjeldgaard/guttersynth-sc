@@ -20,18 +20,19 @@ enum class DistortionType {
 	Sigmoid
 };
 	
-template <size_t BankCount, size_t FilterCount>
+template <size_t BankCount, size_t MaxFilterCount>
 struct State {
 	static constexpr int bankCount {BankCount};
-    static constexpr int filterCount {FilterCount};
+    
+	int filterCount {0};
 
-	std::array<std::array<double, FilterCount>, BankCount> a0, a1, a2, b1, b2;
+	std::array<std::array<double, MaxFilterCount>, BankCount> a0, a1, a2, b1, b2;
 	
-	std::array<std::array<double, FilterCount>, BankCount> filterFreqsArray, filterFreqsArrayTemp;
+	std::array<std::array<double, MaxFilterCount>, BankCount> filterFreqsArray, filterFreqsArrayTemp;
 
-	std::array<double, FilterCount> Q, QTemp;
+	std::array<double, MaxFilterCount> Q, QTemp;
 
-	std::array<std::array<double, FilterCount>, BankCount> V, K, norm, prevX1, prevX2, prevY1, prevY2, y;
+	std::array<std::array<double, MaxFilterCount>, BankCount> V, K, norm, prevX1, prevX2, prevY1, prevY2, y;
 
 	std::array<double, BankCount> gains;
 	double Fs, singleGain;
