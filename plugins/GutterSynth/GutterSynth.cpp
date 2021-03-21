@@ -52,7 +52,7 @@ void InitGutterState(GutterState& s) {
 			
 		for (int filter = 0; filter < s.filterCount; filter++) 
 		{ 	
-			s.filterFreqsArray[bank][filter] = (filter / 2.0) * 20.0 * (bank + 1) * 1.2 + 80.0;		// INIT arbitrary filter freqs
+			s.filterFreqsArray[bank][filter] = (filter / 2.0) * 20.0 * (static_cast<double>(bank) + 1.0) * 1.2 + 80.0;		// INIT arbitrary filter freqs
 		}
 
 		s.y[bank].fill(0.0);	
@@ -90,8 +90,8 @@ inline double Distortion(double value, DistortionType type, double finalY) {
 		return sc_max(sc_min(value, 1.0), -1.0);
 	case DistortionType::CubicClipping:			// DIST #1: 	??? cubic with clipping? Can't remember where this came from
 		return 
-			(finalY <= -1) ? -0.666666667
-						   : (value <= 1) ? value - (value * value * value) / 3
+			(finalY <= -1.0) ? -0.666666667
+						   : (value <= 1.0) ? value - (value * value * value) / 3.0
 						   : 0.666666667;
 	case DistortionType::Tanh:					// DIST #2: 	tanh
 		return std::atan(value);				
@@ -100,7 +100,7 @@ inline double Distortion(double value, DistortionType type, double finalY) {
 	case DistortionType::TanhApprox:			// DIST #4: 	tanh approximation? From http://www.kvraudio.com/forum/viewtopic.php?p=4402120
 		return (0.1076 * value * value * value + 3.029 * value) / (value * value + 3.124);	
 	case DistortionType::Sigmoid:				// DIST #5: 	sigmoid function - see Kiefer and the ESN tutorial
-		return 2 / (1 + std::exp(-1 * value));	// modified to increase the gain (2 instead of 1)
+		return 2.0 / (1.0 + std::exp(-1.0 * value));	// modified to increase the gain (2 instead of 1)
 	}
 }
 
