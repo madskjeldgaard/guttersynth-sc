@@ -125,13 +125,19 @@ void GutterSynth::next(int nSamples) {
 	float* out1 = out((int)Outputs::OutL);
     float* out2 = out((int)Outputs::OutR);
 
-	s.gamma = in((int)Inputs::Gamma)[0];
-	s.omega = in((int)Inputs::Omega)[0];
-    s.c = in((int)Inputs::C)[0];
-    s.dt = in((int)Inputs::Dt)[0];
-    s.singleGain = in((int)Inputs::SingleGain)[0];
-    s.gains[0] = in((int)Inputs::Gains1)[0];
-    s.gains[1] = in((int)Inputs::Gains2)[0];
+	s.gamma 		= in((int)Inputs::Gamma)[0];
+	s.omega 		= in((int)Inputs::Omega)[0];
+    s.c 			= in((int)Inputs::C)[0];
+    s.dt 			= in((int)Inputs::Dt)[0];
+    s.singleGain 	= sc_clip(in((int)Inputs::SingleGain)[0], 0.0, 5.0);
+	s.smoothing		= 1.0 + in((int)Inputs::Smoothing)[0]; // 0 = no smoothing
+	s.filtersOn		= 0 < in((int)Inputs::ToggleFilters)[0];
+	s.distortionType= static_cast<DistortionType>(in((int)Inputs::DistortionMethod)[0]);
+	s.enableAudioInput = 0 < in((int)Inputs::EnableAudioInput)[0];
+
+    s.gains[0] 		= in((int)Inputs::Gains1)[0];
+    s.gains[1] 		= in((int)Inputs::Gains2)[0];
+
 	float const* audioInput = in((int)Inputs::AudioInput);
 
     /*-------------------------------------------------------------------*
