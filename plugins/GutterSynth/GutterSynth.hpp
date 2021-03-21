@@ -15,7 +15,7 @@ enum class DistortionType {
 	Clipping,
 	CubicClipping,
 	Tanh,
-	Atan,
+	AtanApprox,
 	TanhApprox,
 	Sigmoid
 };
@@ -59,7 +59,7 @@ class GutterSynth : public SCUnit {
 public:
     GutterSynth();
 
-    GutterState state;
+    GutterState s;
 
     // Destructor
     // ~GutterSynth();
