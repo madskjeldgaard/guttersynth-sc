@@ -9,6 +9,15 @@
 static InterfaceTable* ft;
 
 namespace GutterSynth {
+
+enum class DistortionType {
+	Clipping,
+	CubicClipping,
+	Tanh,
+	Atan,
+	TanhApprox,
+	Sigmoid
+};
 	
 template <size_t BankCount, size_t FilterCount>
 struct State {
@@ -34,7 +43,7 @@ struct State {
 	//public float[] x; @TODO unused?
 	double finalY;
 
-	int distMethod = 2;
+	DistortionType distortionType {DistortionType::Tanh};
 
 	int filterCount;
 
