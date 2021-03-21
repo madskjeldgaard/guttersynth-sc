@@ -22,6 +22,9 @@ enum class DistortionType {
 	
 template <size_t BankCount, size_t FilterCount>
 struct State {
+	static constexpr int bankCount {BankCount};
+    static constexpr int filterCount {FilterCount};
+
 	std::array<std::array<double, FilterCount>, BankCount> a0, a1, a2, b1, b2;
 	
 	std::array<std::array<double, FilterCount>, BankCount> filterFreqsArray, filterFreqsArrayTemp;
@@ -34,7 +37,6 @@ struct State {
 	double Fs, singleGain;
 	double audioInput;
 	bool enableAudioInput;
-	int bankCount {BankCount}; // @TODO redundant?
 
 	double smoothing; // for the lowpass. 1 = no lowpass, 5 = quite lowpassed
 
@@ -45,8 +47,6 @@ struct State {
 	double finalY;
 
 	DistortionType distortionType {DistortionType::Tanh};
-
-	int filterCount;
 
 	bool filtersOn;
 };

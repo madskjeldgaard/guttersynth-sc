@@ -2,57 +2,89 @@
 // Mads Kjeldgaard & Scott Carver (mail@madskjeldgaard.dk)
 
 #include "SC_PlugIn.hpp"
+#include "SC_Constants.h"
 #include "GutterSynth.hpp"
+
+#include <cmath>
 
 static InterfaceTable* ft;
 
 namespace GutterSynth {
 
-void InitGutterState(GutterState&) {
-	M_PI = 3.14159265358979323846;	
-	Fs = 44100;		
-	filterCount = 24;
-	filtersOn = true;	// turn off for Duffing only
-	singleGain = 0.0;
+void CalcCoeffs(GutterState& s) {						
+	for (auto bank = 0; bank < s.bankCount; bank++) {
+		for (int filter = 0; filter < s.filterCount; filter++) {
+			s.V[bank][filter] = sc_pow(10.0, 1.0 / 20.0);
+			s.K[bank][filter] = std::tan(pi * s.filterFreqsArray[bank][filter] / s.Fs);
 
-	enableAudioInput = false;   // uses the sine forcing for the Duffing by default
+			s.norm[bank][filter] = 1.0 / (1.0 + s.K[bank][filter] / s.Q[filter] + s.K[bank][filter] * s.K[bank][filter]);
 
-	smoothing = 1; // for the lowpass. 1 = no lowpass, 5 = quite lowpassed
+			s.a0[bank][filter] = s.K[bank][filter] / s.Q[bank] * s.norm[bank][filter];
+			s.a1[bank][filter] = 0.0;
+			s.a2[bank][filter] = -s.a0[bank][filter];
 
-	// TO KEEP after having moved all this to the init functions at the bottom:
-	initMainArrays(bankCount, filterCount);
-	
-	gains = new double[bankCount];
-	
-	for (int i=0; i<bankCount; i++) 
-	{
-		if (i==0) 
-		{ 
-			gains[i] = 1;
-		} else {
-			gains[i] = 0;
-		}
-			
-		for (int j=0; j<filterCount; j++) 
-		{ 	
-			filterFreqsArray[i][j] = (j/2.0)*20 * (i+1)*1.2 + 80;		// INIT arbitrary filter freqs
-			y[i][j] = 0;	prevX1[i][j] = 0; prevX2[i][j] = 0; prevY1[i][j] = 0; prevY2[i][j] = 0;
+			s.b1[bank][filter] = 2.0 * (s.K[bank][filter] * s.K[bank][filter] - 1) * s.norm[bank][filter];
+			s.b2[bank][filter] = (1.0 - s.K[bank][filter] / s.Q[bank] + s.K[bank][filter] * s.K[bank][filter]) * s.norm[bank][filter];  	
 		}
 	}
-
-	initTempArrays(bankCount, filterCount);
-	for (int j=0; j<filterCount; j++) {	Q[j] = 30; QTemp[j] = 30;	}	
-
-	calcCoeffs();
-	
-	duffX = 0; duffY = 0; dx = 0; dy = 0;
-	gamma = 0.1; omega = 1.25; c = 0.3;
-	t = 0;
-	dt = 1;
 }
+
+void InitTempArrays(GutterState& s) {
+	s.QTemp = s.Q;
+
+	for (auto bank = 0; bank < s.bankCount; bank++) {
+		s.filterFreqsArrayTemp[bank] = s.filterFreqsArray[bank];
+	}
+}
+
+void InitGutterState(GutterState& s) {
+	s.Fs = 44100.0;		
+	s.filtersOn = true;	// turn off for Duffing only
+	s.singleGain = 0.0;
+
+	s.enableAudioInput = false;   // uses the sine forcing for the Duffing by default
+
+	s.smoothing = 1.0; // for the lowpass. 1 = no lowpass, 5 = quite lowpassed
+	
+	for (auto bank = 0; bank < s.bankCount; bank++) 
+	{
+		s.gains[bank] = (bank==0) ? 1.0 : 0.0;
+			
+		for (int filter = 0; filter < s.filterCount; filter++) 
+		{ 	
+			s.filterFreqsArray[bank][filter] = (filter / 2.0) * 20.0 * (bank + 1) * 1.2 + 80.0;		// INIT arbitrary filter freqs
+		}
+
+		s.y[bank].fill(0.0);	
+		s.prevX1[bank].fill(0.0); 
+		s.prevX2[bank].fill(0.0); 
+		s.prevY1[bank].fill(0.0); 
+		s.prevY2[bank].fill(0.0);
+	}
+
+	InitTempArrays(s);
+	s.Q.fill(30.0);
+	s.QTemp.fill(30.0);
+
+	CalcCoeffs(s);
+	
+	s.duffX = 0.0; 
+	s.duffY = 0.0; 
+	s.dx = 0.0; 
+	s.dy = 0.0;
+	s.gamma = 0.1; 
+	s.omega = 1.25; 
+	s.c = 0.3;
+	s.t = 0.0;
+	s.dt = 1.0;
+}
+
 
 GutterSynth::GutterSynth() {
     mCalcFunc = make_calc_function<GutterSynth, &GutterSynth::next>();
+
+	InitGutterState(state);
+
     next(1);
 }
 
