@@ -67,7 +67,9 @@ public:
 private:
     // Calc function
     void next(int nSamples);
-
+	// Gains1 and Gains 2 should be tested using audio rate Line objects
+	enum class Inputs {Gamma, Omega, C, Dt, SingleGain, AudioInput, Gains1, Gains2};	
+	enum class Outputs {OutL, OutR};
     // Member variables
 };
 
