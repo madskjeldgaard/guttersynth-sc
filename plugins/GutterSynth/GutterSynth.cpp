@@ -37,8 +37,8 @@ void InitTempArrays(GutterState& s) {
 	}
 }
 
-void InitGutterState(GutterState& s) {
-	s.Fs = 44100.0;		
+void InitGutterState(GutterState& s, double sampleRate) {
+	s.Fs = sampleRate;		
 	s.filtersOn = true;	// turn off for Duffing only
 	s.singleGain = 0.0;
 
@@ -50,11 +50,6 @@ void InitGutterState(GutterState& s) {
 	{
 		s.gains[bank] = (bank==0) ? 1.0 : 0.0;
 			
-		for (int filter = 0; filter < s.filterCount; filter++) 
-		{ 	
-			s.filterFreqsArray[bank][filter] = (filter / 2.0) * 20.0 * (static_cast<double>(bank) + 1.0) * 1.2 + 80.0;		// INIT arbitrary filter freqs
-		}
-
 		s.y[bank].fill(0.0);	
 		s.prevX1[bank].fill(0.0); 
 		s.prevX2[bank].fill(0.0); 
@@ -63,11 +58,7 @@ void InitGutterState(GutterState& s) {
 	}
 
 	InitTempArrays(s);
-	s.Q.fill(30.0);
-	s.QTemp.fill(30.0);
 
-	CalcCoeffs(s);
-	
 	s.duffX = 0.0; 
 	s.duffY = 0.0; 
 	s.dx = 0.0; 
@@ -112,11 +103,39 @@ void ResetDuff(GutterState& s) {
 	s.t = 0.0;
 }
 
+void SetFilter(GutterState& s, int bank, int filter, double freq, double q)
+{
+	// printf("bank: %d    filter: %d    freq: %f      q: %f   \n", bank, filter, freq, q);
+
+	s.filterFreqsArray[bank][filter] = freq;
+	s.filterFreqsArrayTemp[bank][filter] = freq;
+
+	s.Q[filter] = q;
+	s.QTemp[filter] = q;
+}
+
 GutterSynth::GutterSynth() {
     mCalcFunc = make_calc_function<GutterSynth, &GutterSynth::next>();
 
-	InitGutterState(s);
+	InitGutterState(s, sampleRate());
 
+	// @TODO extract to separate "SetFilters" function?
+	constexpr auto filterParamCount = 2; // freq, q
+    s.filterCount = (mNumInputs - static_cast<int>(Inputs::FilterParams)) / s.bankCount / filterParamCount;
+
+	for (auto filter = 0; filter < s.filterCount; ++filter) {
+		for (auto bank = 0; bank < s.bankCount; ++bank) {
+			const auto inputOffset = filterParamCount * ((bank * s.filterCount) + s.filterCount);
+
+			const auto freq = in((int)Inputs::FilterParams + inputOffset + 0)[0];
+			const auto q = in((int)Inputs::FilterParams + inputOffset + 1)[0];
+
+			SetFilter(s, bank, filter, freq, q);
+		}
+	}
+	CalcCoeffs(s);
+
+	// @TODO We need to reset our state after next(1) is called?
     next(1);
 }
 

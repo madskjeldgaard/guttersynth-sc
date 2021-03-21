@@ -69,7 +69,7 @@ private:
     // Calc function
     void next(int nSamples);
 	// Gains1 and Gains 2 should be tested using audio rate Line objects
-	enum class Inputs {Gamma, Omega, C, Dt, SingleGain, Smoothing, ToggleFilters, DistortionMethod, EnableAudioInput, AudioInput, Gains1, Gains2};	
+	enum class Inputs {Gamma, Omega, C, Dt, SingleGain, Smoothing, ToggleFilters, DistortionMethod, EnableAudioInput, AudioInput, Gains1, Gains2, FilterParams};	
 	enum class Outputs {OutL, OutR};
     // Member variables
 };
