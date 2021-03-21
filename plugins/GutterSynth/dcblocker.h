@@ -1,5 +1,7 @@
 #pragma once
 
+// Based on
+// https://ccrma.stanford.edu/~jos/filters/DC_Blocker_Software_Implementations.html
 namespace dcblocker {
 class Dcblocker {
 public:
