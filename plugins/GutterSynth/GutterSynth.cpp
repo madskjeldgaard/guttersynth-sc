@@ -10,6 +10,9 @@ static InterfaceTable* ft;
 
 namespace GutterSynth {
 
+constexpr auto DefaultBankCount = 2;
+constexpr auto DefaultFilterCount = 24;
+
 enum class DistortionType {
 	Clipping,
 	CubicClipping,
@@ -49,6 +52,8 @@ struct State {
 
 	bool filtersOn;
 };
+
+using GutterState = State<DefaultBankCount, DefaultFilterCount>;
 
 GutterSynth::GutterSynth() {
     mCalcFunc = make_calc_function<GutterSynth, &GutterSynth::next>();
