@@ -4,37 +4,41 @@
 #include "SC_PlugIn.hpp"
 #include "GutterSynth.hpp"
 
+#include <array>
+
 static InterfaceTable* ft;
 
 namespace GutterSynth {
 	
+template <size_t BankCount, size_t FilterCount>
 struct State {
-	public double[][] a0, a1, a2, b1, b2;
+	std::array<std::array<double, FilterCount>, BankCount> a0, a1, a2, b1, b2;
 	
-	public double[][] filterFreqsArray, filterFreqsArrayTemp;
-	//public double[] filterFreqsTempArray = {68, 97, 170, 248, 391, 449, 531, 589, 658, 711, 879, 771, 807, 1053, 1200, 1255, 1460, 1478, 1521, 1685, 1666, 1784, 1921, 1954, 68, 97, 170, 248, 391, 449, 531, 589, 658, 711, 879, 771, 807, 1053, 1200, 1255, 1460, 1478, 1521, 1685, 1666, 1784, 1921, 1954};
-	public double[] Q, QTemp;
-	//public double[] QTemp = {30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30};
-	public double[][] V, K, norm, prevX1, prevX2, prevY1, prevY2, y;
-	public double[] gains;
-	public double M_PI, Fs, singleGain;
-	public double audioInput;
-	public boolean enableAudioInput;
-	public int bankCount = 2;
+	std::array<std::array<double, FilterCount>, BankCount> filterFreqsArray, filterFreqsArrayTemp;
 
-	public double smoothing; // for the lowpass. 1 = no lowpass, 5 = quite lowpassed
-	
-	public double duffX, duffY, dx, dy;
-	public double gamma, omega, c, t, dt;
-	
-	public float[] x;
-	public double finalY;
+	std::array<double, FilterCount> Q, QTemp;
 
-	public int distMethod = 2;
-	
-	public int filterCount;
+	std::array<std::array<double, FilterCount>, BankCount> V, K, norm, prevX1, prevX2, prevY1, prevY2, y;
 
-	public boolean filtersOn;
+	std::array<double, BankCount> gains;
+	double M_PI, Fs, singleGain;
+	double audioInput;
+	bool enableAudioInput;
+	int bankCount {BankCount}; // @TODO redundant?
+
+	double smoothing; // for the lowpass. 1 = no lowpass, 5 = quite lowpassed
+
+	double duffX, duffY, dx, dy;
+	double gamma, omega, c, t, dt;
+
+	//public float[] x; @TODO unused?
+	double finalY;
+
+	int distMethod = 2;
+
+	int filterCount;
+
+	bool filtersOn;
 };
 
 GutterSynth::GutterSynth() {
