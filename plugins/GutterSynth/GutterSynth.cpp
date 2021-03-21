@@ -21,7 +21,7 @@ struct State {
 	std::array<std::array<double, FilterCount>, BankCount> V, K, norm, prevX1, prevX2, prevY1, prevY2, y;
 
 	std::array<double, BankCount> gains;
-	double M_PI, Fs, singleGain;
+	double Fs, singleGain;
 	double audioInput;
 	bool enableAudioInput;
 	int bankCount {BankCount}; // @TODO redundant?
