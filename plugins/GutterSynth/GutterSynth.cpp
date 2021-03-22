@@ -114,26 +114,29 @@ void SetFilter(GutterState& s, int bank, int filter, double freq, double q)
 	s.QTemp[filter] = q;
 }
 
+void GutterSynth::UpdateFilters()
+{
+    constexpr auto filterParamCount = 2; // freq, q
+    s.filterCount = (mNumInputs - static_cast<int>(Inputs::FilterParams)) / s.bankCount / filterParamCount;
+
+    for (auto filter = 0; filter < s.filterCount; ++filter) {
+        for (auto bank = 0; bank < s.bankCount; ++bank) {
+            const auto inputOffset = filterParamCount * ((bank * s.filterCount) + filter);
+
+            const auto freq = in((int)Inputs::FilterParams + inputOffset + 0)[0];
+            const auto q = in((int)Inputs::FilterParams + inputOffset + 1)[0];
+
+            SetFilter(s, bank, filter, freq, q);
+        }
+    }
+    CalcCoeffs(s);
+}
+
 GutterSynth::GutterSynth() {
     mCalcFunc = make_calc_function<GutterSynth, &GutterSynth::next>();
 
 	InitGutterState(s, sampleRate());
-
-	// @TODO extract to separate "SetFilters" function?
-	constexpr auto filterParamCount = 2; // freq, q
-    s.filterCount = (mNumInputs - static_cast<int>(Inputs::FilterParams)) / s.bankCount / filterParamCount;
-
-	for (auto filter = 0; filter < s.filterCount; ++filter) {
-		for (auto bank = 0; bank < s.bankCount; ++bank) {
-			const auto inputOffset = filterParamCount * ((bank * s.filterCount) + s.filterCount);
-
-			const auto freq = in((int)Inputs::FilterParams + inputOffset + 0)[0];
-			const auto q = in((int)Inputs::FilterParams + inputOffset + 1)[0];
-
-			SetFilter(s, bank, filter, freq, q);
-		}
-	}
-	CalcCoeffs(s);
+    UpdateFilters();
 
 	// @TODO We need to reset our state after next(1) is called?
     next(1);
@@ -158,6 +161,8 @@ void GutterSynth::next(int nSamples) {
     s.gains[1] 		= in((int)Inputs::Gains2)[0];
 
 	float const* audioInput = in((int)Inputs::AudioInput);
+
+    UpdateFilters();
 
     /*-------------------------------------------------------------------*
      * Go through the required number of samples

@@ -60,6 +60,8 @@ class GutterSynth : public SCUnit {
 public:
     GutterSynth();
 
+    void UpdateFilters();
+
     GutterState s;
 
     // Destructor
