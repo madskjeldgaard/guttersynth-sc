@@ -187,6 +187,15 @@ void GutterSynth::next(int nSamples) {
                     s.prevY2[bank][filter] = s.prevY1[bank][filter];
                     s.prevY1[bank][filter] = s.y[bank][filter];
                     s.finalY += s.y[bank][filter] * s.gains[bank] * s.singleGain; // retain singleGain for overall control
+                    s.prevX2[bank][filter] =
+                        zapgremlins(s.prevX1[bank][filter]);
+                    s.prevX1[bank][filter] = zapgremlins(s.duffX);
+                    s.prevY2[bank][filter] =
+                        zapgremlins(s.prevY1[bank][filter]);
+                    s.prevY1[bank][filter] = zapgremlins(s.y[bank][filter]);
+                    s.finalY += zapgremlins(
+                        s.y[bank][filter] * s.gains[bank] *
+                        s.singleGain); // retain singleGain for overall control
                 }
             }
         } else { // if filters are disabled then pass directly
