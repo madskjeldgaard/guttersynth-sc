@@ -46,6 +46,8 @@ struct State {
 	//public float[] x; @TODO unused?
 	double finalY;
 
+	double filterOutputs[2];
+
 	DistortionType distortionType {DistortionType::Tanh};
 
 	bool filtersOn;

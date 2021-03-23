@@ -174,22 +174,26 @@ void GutterSynth::next(int nSamples) {
         s.finalY = 0;
         if (s.filtersOn) {
             for (int bank = 0; bank < s.bankCount; bank++) {
-                for (int filter = 0; filter < s.filterCount; filter++) {
-					// @TODO Potential for performance increase: Swap out biquad filter for SVF
-                    s.y[bank][filter] = s.a0[bank][filter] * s.duffX 
-									  + s.a1[bank][filter] * s.prevX1[bank][filter] 
-									  + s.a2[bank][filter] * s.prevX2[bank][filter]
-									  - s.b1[bank][filter] * s.prevY1[bank][filter] 
-									  - s.b2[bank][filter] * s.prevY2[bank][filter];
-                    s.prevX2[bank][filter] =
-                        zapgremlins(s.prevX1[bank][filter]);
-                    s.prevX1[bank][filter] = zapgremlins(s.duffX);
-                    s.prevY2[bank][filter] =
-                        zapgremlins(s.prevY1[bank][filter]);
-                    s.prevY1[bank][filter] = zapgremlins(s.y[bank][filter]);
-                    s.finalY += zapgremlins(
-                        s.y[bank][filter] * s.gains[bank] *
-                        s.singleGain); // retain singleGain for overall control
+              s.filterOutputs[bank] = 0.0;
+              for (int filter = 0; filter < s.filterCount; filter++) {
+                // @TODO Potential for performance increase: Swap out biquad
+                // filter for SVF
+                s.y[bank][filter] =
+                    s.a0[bank][filter] * s.duffX +
+                    s.a1[bank][filter] * s.prevX1[bank][filter] +
+                    s.a2[bank][filter] * s.prevX2[bank][filter] -
+                    s.b1[bank][filter] * s.prevY1[bank][filter] -
+                    s.b2[bank][filter] * s.prevY2[bank][filter];
+                s.prevX2[bank][filter] = zapgremlins(s.prevX1[bank][filter]);
+                s.prevX1[bank][filter] = zapgremlins(s.duffX);
+                s.prevY2[bank][filter] = zapgremlins(s.prevY1[bank][filter]);
+                s.prevY1[bank][filter] = zapgremlins(s.y[bank][filter]);
+                s.finalY += zapgremlins(
+                    s.y[bank][filter] * s.gains[bank] *
+                    s.singleGain); // retain singleGain for overall control
+
+                s.filterOutputs[bank] +=
+                    s.y[bank][filter] * s.gains[bank] * s.singleGain;
                 }
             }
         } else { // if filters are disabled then pass directly
@@ -209,16 +213,22 @@ void GutterSynth::next(int nSamples) {
 
         if (s.filtersOn) { // If the filters are enabled use variable distortion (function above)
             s.duffX = Distortion(s.duffX, s.distortionType, s.finalY);
-            out1[i] = (float)(s.finalY * 0.125); // output the value from the filter, not from the distortion
+
+            /* out1[i] = (float)(s.finalY * 0.125); // output the value from the
+             * filter, not from the distortion */
+            out1[i] = static_cast<float>(s.filterOutputs[0] * 0.125);
+            out2[i] = static_cast<float>(s.filterOutputs[1] * 0.125);
+
         } else { // If the filters are OFF use reset() function to reignite process (snazzy clicks?)
             s.duffX = sc_clip(s.duffX, -100.0, 100.0);
             if (sc_abs(s.duffX) > 99.0) {
                 ResetDuff(s);
             }
             out1[i] = static_cast<float>(sc_clip(s.duffX * s.singleGain, -1.0, 1.0));
+            out2[i] = out1[i];
         }
 
-        out2[i] = static_cast<float>(s.duffX);
+        /* out2[i] = static_cast<float>(s.duffX); */
 
         s.t += s.dt;
 
