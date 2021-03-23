@@ -30,6 +30,8 @@ void CalcCoeffs(GutterState& s) {
 }
 
 void InitTempArrays(GutterState& s) {
+  for (auto bank = 0; bank < s.bankCount; bank++) {
+    s.filterFreqsArrayTemp[bank] = s.filterFreqsArray[bank];
 	}
 }
 
@@ -101,10 +103,12 @@ void ResetDuff(GutterState& s) {
 
 void SetFilter(GutterState& s, int bank, int filter, double freq, double q)
 {
-	// printf("bank: %d    filter: %d    freq: %f      q: %f   \n", bank, filter, freq, q);
+  /* Print("bank: %d    filter: %d    freq: %f      q: %f   \n", bank, filter,
+   */
+  /* freq, q); */
 
-	s.filterFreqsArray[bank][filter] = freq;
-	s.filterFreqsArrayTemp[bank][filter] = freq;
+  s.filterFreqsArray[bank][filter] = freq;
+  s.filterFreqsArrayTemp[bank][filter] = freq;
 
   s.Q[filter] = q;
 }
@@ -177,11 +181,6 @@ void GutterSynth::next(int nSamples) {
 									  + s.a2[bank][filter] * s.prevX2[bank][filter]
 									  - s.b1[bank][filter] * s.prevY1[bank][filter] 
 									  - s.b2[bank][filter] * s.prevY2[bank][filter];
-                    s.prevX2[bank][filter] = s.prevX1[bank][filter];
-                    s.prevX1[bank][filter] = s.duffX;
-                    s.prevY2[bank][filter] = s.prevY1[bank][filter];
-                    s.prevY1[bank][filter] = s.y[bank][filter];
-                    s.finalY += s.y[bank][filter] * s.gains[bank] * s.singleGain; // retain singleGain for overall control
                     s.prevX2[bank][filter] =
                         zapgremlins(s.prevX1[bank][filter]);
                     s.prevX1[bank][filter] = zapgremlins(s.duffX);
