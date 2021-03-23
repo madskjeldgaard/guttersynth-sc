@@ -30,7 +30,7 @@ struct State {
 	
 	std::array<std::array<double, MaxFilterCount>, BankCount> filterFreqsArray, filterFreqsArrayTemp;
 
-	std::array<double, MaxFilterCount> Q, QTemp;
+	std::array<double, MaxFilterCount> Q;
 
 	std::array<std::array<double, MaxFilterCount>, BankCount> V, K, norm, prevX1, prevX2, prevY1, prevY2, y;
 

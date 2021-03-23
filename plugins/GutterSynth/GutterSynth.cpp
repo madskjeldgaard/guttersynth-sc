@@ -30,10 +30,6 @@ void CalcCoeffs(GutterState& s) {
 }
 
 void InitTempArrays(GutterState& s) {
-	s.QTemp = s.Q;
-
-	for (auto bank = 0; bank < s.bankCount; bank++) {
-		s.filterFreqsArrayTemp[bank] = s.filterFreqsArray[bank];
 	}
 }
 
@@ -110,8 +106,7 @@ void SetFilter(GutterState& s, int bank, int filter, double freq, double q)
 	s.filterFreqsArray[bank][filter] = freq;
 	s.filterFreqsArrayTemp[bank][filter] = freq;
 
-	s.Q[filter] = q;
-	s.QTemp[filter] = q;
+  s.Q[filter] = q;
 }
 
 void GutterSynth::UpdateFilters()
