@@ -36,7 +36,6 @@ struct State {
 
 	std::array<double, BankCount> gains;
 	double Fs, singleGain;
-	double audioInput;
 	bool enableAudioInput;
 
 	double smoothing; // for the lowpass. 1 = no lowpass, 5 = quite lowpassed
