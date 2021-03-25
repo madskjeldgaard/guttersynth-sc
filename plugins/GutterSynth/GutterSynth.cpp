@@ -135,100 +135,118 @@ GutterSynth::GutterSynth() {
   dcfilter1.init();
   dcfilter2.init();
 
-	InitGutterState(s, sampleRate());
-    UpdateFilters();
+  mCalcFunc = make_calc_function<GutterSynth, &GutterSynth::next>();
 
-	// @TODO We need to reset our state after next(1) is called?
-    next(1);
+  InitGutterState(s, sampleRate());
+
+  // Initialize state variables for the parameter smoothing functions
+  m_gamma_past = s.gamma;
+  m_dt_past = s.dt;
+  m_c_past = s.c;
+  m_omega_past = s.omega;
+  m_singlegain_past = s.singleGain;
+  m_smoothing_past = s.smoothing;
+
+  UpdateFilters();
+
+  // @TODO We need to reset our state after next(1) is called?
+  next(1);
 }
 
 void GutterSynth::next(int nSamples) {
 
-	float* out1 = out((int)Outputs::OutL);
-    float* out2 = out((int)Outputs::OutR);
+  float *out1 = out((int)Outputs::OutL);
+  float *out2 = out((int)Outputs::OutR);
 
-	s.gamma 		= in((int)Inputs::Gamma)[0];
-	s.omega 		= in((int)Inputs::Omega)[0];
-    s.c 			= in((int)Inputs::C)[0];
-    s.dt 			= in((int)Inputs::Dt)[0];
-    s.singleGain 	= sc_clip(in((int)Inputs::SingleGain)[0], 0.0, 5.0);
-	s.smoothing		= 1.0 + in((int)Inputs::Smoothing)[0]; // 0 = no smoothing
-	s.filtersOn		= 0 < in((int)Inputs::ToggleFilters)[0];
-	s.distortionType= static_cast<DistortionType>(in((int)Inputs::DistortionMethod)[0]);
-	s.enableAudioInput = 0 < in((int)Inputs::EnableAudioInput)[0];
+  SlopeSignal<float> slopedGamma =
+      makeSlope(in0((int)Inputs::Gamma), m_gamma_past);
+  SlopeSignal<float> slopedOmega =
+      makeSlope(in0((int)Inputs::Omega), m_omega_past);
+  SlopeSignal<float> slopedC = makeSlope(in0((int)Inputs::C), m_c_past);
+  SlopeSignal<float> slopedDt = makeSlope(in0((int)Inputs::Dt), m_dt_past);
+  SlopeSignal<float> slopedSingleGain =
+      makeSlope(in0((int)Inputs::SingleGain), m_singlegain_past);
+  SlopeSignal<float> slopedSmoothing =
+      makeSlope(in0((int)Inputs::Smoothing), m_smoothing_past);
 
-    s.gains[0] 		= in((int)Inputs::Gains1)[0];
-    s.gains[1] 		= in((int)Inputs::Gains2)[0];
+  s.filtersOn = 0 < in((int)Inputs::ToggleFilters)[0];
+  s.distortionType =
+      static_cast<DistortionType>(in((int)Inputs::DistortionMethod)[0]);
+  s.enableAudioInput = 0 < in((int)Inputs::EnableAudioInput)[0];
 
-	float const* audioInput = in((int)Inputs::AudioInput);
+  s.gains[0] = in((int)Inputs::Gains1)[0];
+  s.gains[1] = in((int)Inputs::Gains2)[0];
 
-    UpdateFilters();
+  float const *audioInput = in((int)Inputs::AudioInput);
 
-    /*-------------------------------------------------------------------*
-     * Go through the required number of samples
-     *-------------------------------------------------------------------*/
-    for (int i = 0; i < nSamples; i++) {
-		// Input sample
-		float inputSample = audioInput[i];
+  UpdateFilters();
 
-        // band pass filters
-        s.finalY = 0;
-        if (s.filtersOn) {
-            for (int bank = 0; bank < s.bankCount; bank++) {
-                for (int filter = 0; filter < s.filterCount; filter++) {
-					// @TODO Potential for performance increase: Swap out biquad filter for SVF
-                    s.y[bank][filter] = s.a0[bank][filter] * s.duffX 
-									  + s.a1[bank][filter] * s.prevX1[bank][filter] 
-									  + s.a2[bank][filter] * s.prevX2[bank][filter]
-									  - s.b1[bank][filter] * s.prevY1[bank][filter] 
-									  - s.b2[bank][filter] * s.prevY2[bank][filter];
-                    s.prevX2[bank][filter] =
-                        zapgremlins(s.prevX1[bank][filter]);
-                    s.prevX1[bank][filter] = zapgremlins(s.duffX);
-                    s.prevY2[bank][filter] =
-                        zapgremlins(s.prevY1[bank][filter]);
-                    s.prevY1[bank][filter] = zapgremlins(s.y[bank][filter]);
-                    s.finalY += zapgremlins(
-                        s.y[bank][filter] * s.gains[bank] *
-                        s.singleGain); // retain singleGain for overall control
-                }
-            }
-        } else { // if filters are disabled then pass directly
-            s.finalY = s.duffX;
+  /*-------------------------------------------------------------------*
+   * Go through the required number of samples
+   *-------------------------------------------------------------------*/
+  for (int i = 0; i < nSamples; i++) {
+    // Input sample
+    float inputSample = audioInput[i];
+
+    // Smoothed parameters
+    const float gamma = slopedGamma.consume();
+    s.gamma = gamma;
+
+    const float omega = slopedOmega.consume();
+    s.omega = omega;
+
+    const float c = slopedC.consume();
+    s.c = c;
+
+    const float dt = slopedDt.consume();
+    s.dt = dt;
+
+    const float singlegain = slopedSingleGain.consume();
+    s.singleGain = sc_clip(singlegain, 0.0f, 5.0f);
+
+    const float smoothing = slopedSmoothing.consume();
+    s.smoothing = 1.0 + smoothing; // 0 = no smoothing
+
+    // band pass filters
+    s.finalY = 0;
+    if (s.filtersOn) {
+      for (int bank = 0; bank < s.bankCount; bank++) {
+        for (int filter = 0; filter < s.filterCount; filter++) {
+          // @TODO Potential for performance increase: Swap out biquad filter
+          // for SVF
+          s.y[bank][filter] = s.a0[bank][filter] * s.duffX +
+                              s.a1[bank][filter] * s.prevX1[bank][filter] +
+                              s.a2[bank][filter] * s.prevX2[bank][filter] -
+                              s.b1[bank][filter] * s.prevY1[bank][filter] -
+                              s.b2[bank][filter] * s.prevY2[bank][filter];
+          s.prevX2[bank][filter] = zapgremlins(s.prevX1[bank][filter]);
+          s.prevX1[bank][filter] = zapgremlins(s.duffX);
+          s.prevY2[bank][filter] = zapgremlins(s.prevY1[bank][filter]);
+          s.prevY1[bank][filter] = zapgremlins(s.y[bank][filter]);
+          s.finalY += zapgremlins(
+              s.y[bank][filter] * s.gains[bank] *
+              s.singleGain); // retain singleGain for overall control
         }
 
-        // DUFFING with audioInput or with OSC?
-        if (s.enableAudioInput) {
-            s.dy = s.finalY - (s.finalY * s.finalY * s.finalY) - (s.c * s.duffY) + s.gamma * inputSample;
-        } else {
-            s.dy = s.finalY - (s.finalY * s.finalY * s.finalY) - (s.c * s.duffY) + s.gamma * std::sin(s.omega * s.t);
-        }
-
-        s.duffY += s.dy;
-        s.dx = s.duffY;
-        s.duffX = Lowpass(s.finalY + s.dx, s.duffX, s.smoothing);
-
-        if (s.filtersOn) { // If the filters are enabled use variable distortion (function above)
-            s.duffX = Distortion(s.duffX, s.distortionType, s.finalY);
-            out1[i] = (float)(s.finalY * 0.125); // output the value from the filter, not from the distortion
-        } else { // If the filters are OFF use reset() function to reignite process (snazzy clicks?)
-            s.duffX = sc_clip(s.duffX, -100.0, 100.0);
-            if (sc_abs(s.duffX) > 99.0) {
-                ResetDuff(s);
-            }
-            out1[i] = static_cast<float>(sc_clip(s.duffX * s.singleGain, -1.0, 1.0));
-        }
-
-        out2[i] = static_cast<float>(s.duffX);
+    out2[i] = static_cast<float>(s.duffX);
 
     out1[i] = dcfilter1.process(out1[i]);
     out2[i] = dcfilter2.process(out2[i]);
 
-		// @TODO Zapgremlins instead?
-        if (std::isnan(s.duffX)) {
-            ResetDuff(s);
-        }			
-	}
+    s.t += s.dt;
+
+    // @TODO Zapgremlins instead?
+    if (std::isnan(s.duffX)) {
+      ResetDuff(s);
+    }
+  }
+
+  m_gamma_past = slopedGamma.value;
+  m_dt_past = slopedDt.value;
+  m_singlegain_past = slopedSingleGain.value;
+  m_smoothing_past = slopedSmoothing.value;
+  m_c_past = slopedC.value;
+  m_omega_past = slopedOmega.value;
 }
 
 } // namespace GutterSynth
