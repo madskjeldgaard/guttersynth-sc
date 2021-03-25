@@ -73,24 +73,37 @@ inline double Lowpass(double newVal, double oldVal, double smooth) {
 }
 
 inline double Distortion(double value, DistortionType type, double finalY) {
-	// value is the temporary final output
-	switch (type) {
-	case DistortionType::Clipping:
-		return sc_max(sc_min(value, 1.0), -1.0);
-	case DistortionType::CubicClipping:			// DIST #1: 	??? cubic with clipping? Can't remember where this came from
-		return 
-			(finalY <= -1.0) ? -0.666666667
-						   : (value <= 1.0) ? value - (value * value * value) / 3.0
-						   : 0.666666667;
-	case DistortionType::Tanh:					// DIST #2: 	tanh
-		return std::atan(value);				
-	case DistortionType::AtanApprox:			// DIST #3: 	atan approximation? From http://www.kvraudio.com/forum/viewtopic.php?p=4402120
-		return 0.75 * (sc_sqrt(((value * 1.3) * (value * 1.3) + 1.0)) * 1.65 - 1.65) / value;	
-	case DistortionType::TanhApprox:			// DIST #4: 	tanh approximation? From http://www.kvraudio.com/forum/viewtopic.php?p=4402120
-		return (0.1076 * value * value * value + 3.029 * value) / (value * value + 3.124);	
-	case DistortionType::Sigmoid:				// DIST #5: 	sigmoid function - see Kiefer and the ESN tutorial
-		return 2.0 / (1.0 + std::exp(-1.0 * value));	// modified to increase the gain (2 instead of 1)
-	}
+  // value is the temporary final output
+  switch (type) {
+  case DistortionType::Clipping:
+    return sc_max(sc_min(value, 1.0), -1.0);
+  case DistortionType::CubicClipping: // DIST #1: 	??? cubic with clipping?
+                                      // Can't remember where this came from
+    return (finalY <= -1.0) ? -0.666666667
+           : (value <= 1.0) ? value - (value * value * value) / 3.0
+                            : 0.666666667;
+  case DistortionType::Tanh: // DIST #2: 	tanh
+    return std::atan(value);
+  case DistortionType::
+      AtanApprox: // DIST #3: 	atan approximation? From
+                  // http://www.kvraudio.com/forum/viewtopic.php?p=4402120
+    return 0.75 *
+           (sc_sqrt(((value * 1.3) * (value * 1.3) + 1.0)) * 1.65 - 1.65) /
+           value;
+  case DistortionType::
+      TanhApprox: // DIST #4: 	tanh approximation? From
+                  // http://www.kvraudio.com/forum/viewtopic.php?p=4402120
+    return (0.1076 * value * value * value + 3.029 * value) /
+           (value * value + 3.124);
+  case DistortionType::Sigmoid: // DIST #5: 	sigmoid function - see Kiefer
+                                // and the ESN tutorial
+    return 2.0 /
+           (1.0 +
+            std::exp(-1.0 *
+                     value)); // modified to increase the gain (2 instead of 1)
+  default:
+    return value;
+  }
 }
 
 void ResetDuff(GutterState& s) {
