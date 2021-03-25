@@ -132,7 +132,7 @@ void GutterSynth::UpdateFilters()
 }
 
 GutterSynth::GutterSynth() {
-    mCalcFunc = make_calc_function<GutterSynth, &GutterSynth::next>();
+  dcfilter1.init();
 
 	InitGutterState(s, sampleRate());
     UpdateFilters();
@@ -220,7 +220,8 @@ void GutterSynth::next(int nSamples) {
 
         out2[i] = static_cast<float>(s.duffX);
 
-        s.t += s.dt;
+    out1[i] = dcfilter1.process(out1[i]);
+    out2[i] = dcfilter2.process(out2[i]);
 
 		// @TODO Zapgremlins instead?
         if (std::isnan(s.duffX)) {

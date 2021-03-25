@@ -73,6 +73,7 @@ private:
 	enum class Inputs {Gamma, Omega, C, Dt, SingleGain, Smoothing, ToggleFilters, DistortionMethod, EnableAudioInput, AudioInput, Gains1, Gains2, FilterParams};	
 	enum class Outputs {OutL, OutR};
     // Member variables
+	dcblocker::Dcblocker dcfilter1, dcfilter2;
 };
 
 } // namespace GutterSynth
