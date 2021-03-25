@@ -133,6 +133,7 @@ void GutterSynth::UpdateFilters()
 
 GutterSynth::GutterSynth() {
   dcfilter1.init();
+  dcfilter2.init();
 
 	InitGutterState(s, sampleRate());
     UpdateFilters();
