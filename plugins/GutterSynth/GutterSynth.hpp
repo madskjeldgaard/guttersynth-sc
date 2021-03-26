@@ -4,6 +4,8 @@
 #pragma once
 
 #include "SC_PlugIn.hpp"
+#include "dcblocker.h"
+
 #include <array>
 
 namespace GutterSynth {
