@@ -28,11 +28,11 @@ struct State {
 
 	std::array<std::array<double, MaxFilterCount>, BankCount> a0, a1, a2, b1, b2;
 	
-	std::array<std::array<double, MaxFilterCount>, BankCount> filterFreqsArray, filterFreqsArrayTemp;
+	std::array<std::array<double, MaxFilterCount>, BankCount> filterFreqsArray;
 
 	std::array<double, MaxFilterCount> Q;
 
-	std::array<std::array<double, MaxFilterCount>, BankCount> V, K, norm, prevX1, prevX2, prevY1, prevY2, y;
+	std::array<std::array<double, MaxFilterCount>, BankCount> K, norm, prevX1, prevX2, prevY1, prevY2, y;
 
 	std::array<double, BankCount> gains;
 	double Fs, singleGain;
@@ -52,8 +52,6 @@ struct State {
 };
 
 using GutterState = State<DefaultBankCount, DefaultFilterCount>;
-
-void InitGutterState(GutterState&);
 
 class GutterSynth : public SCUnit {
 public:

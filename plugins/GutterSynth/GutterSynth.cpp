@@ -14,7 +14,6 @@ namespace GutterSynth {
 void CalcCoeffs(GutterState& s) {						
 	for (auto bank = 0; bank < s.bankCount; bank++) {
 		for (int filter = 0; filter < s.filterCount; filter++) {
-			s.V[bank][filter] = sc_pow(10.0, 1.0 / 20.0);
 			s.K[bank][filter] = std::tan(pi * s.filterFreqsArray[bank][filter] / s.Fs);
 
 			s.norm[bank][filter] = 1.0 / (1.0 + s.K[bank][filter] / s.Q[filter] + s.K[bank][filter] * s.K[bank][filter]);
@@ -29,10 +28,12 @@ void CalcCoeffs(GutterState& s) {
 	}
 }
 
-void InitTempArrays(GutterState& s) {
-  for (auto bank = 0; bank < s.bankCount; bank++) {
-    s.filterFreqsArrayTemp[bank] = s.filterFreqsArray[bank];
-	}
+void ResetDuff(GutterState& s) {
+    s.duffX = 0.0;
+    s.duffY = 0.0;
+    s.dx = 0.0;
+    s.dy = 0.0;
+    s.t = 0.0;
 }
 
 void InitGutterState(GutterState& s, double sampleRate) {
@@ -55,16 +56,11 @@ void InitGutterState(GutterState& s, double sampleRate) {
 		s.prevY2[bank].fill(0.0);
 	}
 
-	InitTempArrays(s);
+    ResetDuff(s);
 
-	s.duffX = 0.0; 
-	s.duffY = 0.0; 
-	s.dx = 0.0; 
-	s.dy = 0.0;
-	s.gamma = 0.1; 
+	s.gamma = 0.1;
 	s.omega = 1.25; 
 	s.c = 0.3;
-	s.t = 0.0;
 	s.dt = 1.0;
 }
 
@@ -103,27 +99,14 @@ inline double Distortion(double value, DistortionType type, double finalY) {
                      value)); // modified to increase the gain (2 instead of 1)
   default:
     return value;
-  }
-}
-
-void ResetDuff(GutterState& s) {
-	s.duffX = 0.0; 
-	s.duffY = 0.0; 
-	s.dx = 0.0;
-	s.dy = 0.0; 
-	s.t = 0.0;
+	}
 }
 
 void SetFilter(GutterState& s, int bank, int filter, double freq, double q)
 {
-  /* Print("bank: %d    filter: %d    freq: %f      q: %f   \n", bank, filter,
-   */
-  /* freq, q); */
-
-  s.filterFreqsArray[bank][filter] = freq;
-  s.filterFreqsArrayTemp[bank][filter] = freq;
-
-  s.Q[filter] = q;
+	// printf("bank: %d    filter: %d    freq: %f      q: %f   \n", bank, filter, freq, q);
+	s.filterFreqsArray[bank][filter] = freq;
+	s.Q[filter] = q;
 }
 
 void GutterSynth::UpdateFilters()
