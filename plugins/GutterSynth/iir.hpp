@@ -3,6 +3,13 @@
 #include <complex>
 #include <type_traits>
 
+/*
+ * This was originally from Jatin Chowdhury's VCV-rack project:
+ * https://github.com/jatinchowdhury18/ChowDSP-VCV
+ *
+ */
+
+
 /** Digital IIR filter processor. Using TDF-II structure:
  * https://ccrma.stanford.edu/~jos/filters/Transposed_Direct_Forms.html
 */

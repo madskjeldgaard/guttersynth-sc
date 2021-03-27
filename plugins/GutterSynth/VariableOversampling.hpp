@@ -1,5 +1,11 @@
 #pragma once
 
+/*
+ * This was originally from Jatin Chowdhury's VCV-rack project:
+ * https://github.com/jatinchowdhury18/ChowDSP-VCV
+ *
+ */
+
 #include "oversampling.hpp"
 
 /** 
