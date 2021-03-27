@@ -73,13 +73,11 @@ inline double Distortion(double value, DistortionType type, double finalY) {
   switch (type) {
   case DistortionType::Clipping:
     return sc_max(sc_min(value, 1.0), -1.0);
-  case DistortionType::CubicClipping: // DIST #1: 	??? cubic with clipping?
-                                      // Can't remember where this came from
-    return (finalY <= -1.0) ? -0.666666667
-           : (value <= 1.0) ? value - (value * value * value) / 3.0
-                            : 0.666666667;
+  case DistortionType::VarClip:
+    // the shape argument of this could from 1 to 100
+    return varClip(value, sc_min(1.0, 100.0));
   case DistortionType::Tanh: // DIST #2: 	tanh
-    return std::atan(value);
+    return fastatan(value);
   case DistortionType::
       AtanApprox: // DIST #3: 	atan approximation? From
                   // http://www.kvraudio.com/forum/viewtopic.php?p=4402120
@@ -91,15 +89,9 @@ inline double Distortion(double value, DistortionType type, double finalY) {
                   // http://www.kvraudio.com/forum/viewtopic.php?p=4402120
     return (0.1076 * value * value * value + 3.029 * value) /
            (value * value + 3.124);
-  case DistortionType::Sigmoid: // DIST #5: 	sigmoid function - see Kiefer
-                                // and the ESN tutorial
-    return 2.0 /
-           (1.0 +
-            std::exp(-1.0 *
-                     value)); // modified to increase the gain (2 instead of 1)
   default:
     return value;
-	}
+        }
 }
 
 void SetFilter(GutterState& s, int bank, int filter, double freq, double q)
@@ -131,6 +123,35 @@ GutterSynth::GutterSynth() {
   dcfilter1.init();
   dcfilter2.init();
 
+  // Init oversampling
+  oversample.reset(sampleRate());
+  const auto overSampleInput =
+      static_cast<OverSamplingAmounts>(in0((int)Inputs::OverSample));
+
+  int overSampleIndex = 0;
+
+  switch (overSampleInput) {
+  case OverSamplingAmounts::None:
+    overSampleIndex = 0;
+    break;
+  case OverSamplingAmounts::Double:
+    overSampleIndex = 1;
+    break;
+  case OverSamplingAmounts::Four:
+    overSampleIndex = 2;
+    break;
+  case OverSamplingAmounts::Eight:
+    overSampleIndex = 3;
+    break;
+  case OverSamplingAmounts::Sixteen:
+    overSampleIndex = 4;
+    break;
+  default:
+    overSampleIndex = 0;
+    break;
+  };
+
+  oversample.setOversamplingIndex(overSampleIndex);
   mCalcFunc = make_calc_function<GutterSynth, &GutterSynth::next>();
 
   InitGutterState(s, sampleRate());
@@ -243,7 +264,14 @@ void GutterSynth::next(int nSamples) {
 
     if (s.filtersOn) { // If the filters are enabled use variable distortion
                        // (function above)
-      s.duffX = Distortion(s.duffX, s.distortionType, s.finalY);
+
+      oversample.upsample(s.duffX);
+      float *osBuffer = oversample.getOSBuffer();
+      for (int k = 0; k < oversample.getOversamplingRatio(); k++)
+        osBuffer[k] = Distortion(osBuffer[k], s.distortionType, s.finalY);
+      s.duffX = oversample.downsample();
+
+      /* s.duffX = Distortion(s.duffX, s.distortionType, s.finalY); */
       out1[i] = (float)(s.finalY * 0.125); // output the value from the filter,
                                            // not from the distortion
     } else { // If the filters are OFF use reset() function to reignite process

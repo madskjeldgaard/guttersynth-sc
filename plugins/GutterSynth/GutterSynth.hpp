@@ -5,6 +5,8 @@
 
 #include "SC_PlugIn.hpp"
 #include "dcblocker.h"
+#include "distortion.h"
+#include "VariableOversampling.hpp"
 
 #include <array>
 
@@ -15,11 +17,10 @@ constexpr auto DefaultFilterCount = 24;
 
 enum class DistortionType {
 	Clipping,
-	CubicClipping,
+	VarClip,
 	Tanh,
 	AtanApprox,
-	TanhApprox,
-	Sigmoid
+	TanhApprox
 };
 	
 template <size_t BankCount, size_t MaxFilterCount>
@@ -66,11 +67,16 @@ public:
     // Destructor
     // ~GutterSynth();
 
+	VariableOversampling<> oversample;
+
 private:
     // Calc function
     void next(int nSamples);
+
+	enum class OverSamplingAmounts { None, Double, Four, Eight, Sixteen };
+
 	// Gains1 and Gains 2 should be tested using audio rate Line objects
-	enum class Inputs {Gamma, Omega, C, Dt, SingleGain, Smoothing, ToggleFilters, DistortionMethod, EnableAudioInput, AudioInput, Gains1, Gains2, FilterParams};	
+	enum class Inputs {Gamma, Omega, C, Dt, SingleGain, Smoothing, ToggleFilters, DistortionMethod, OverSample, EnableAudioInput, AudioInput, Gains1, Gains2, FilterParams};	
 	enum class Outputs {OutL, OutR};
 
 	float m_gamma_past;
