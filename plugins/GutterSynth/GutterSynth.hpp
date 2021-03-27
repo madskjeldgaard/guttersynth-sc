@@ -5,6 +5,7 @@
 
 #include "SC_PlugIn.hpp"
 #include "dcblocker.h"
+#include "fast_tan.h"
 
 #include <array>
 
@@ -15,7 +16,7 @@ constexpr auto DefaultFilterCount = 24;
 
 enum class DistortionType {
 	Clipping,
-	CubicClipping,
+	CubicClipping, 
 	Tanh,
 	AtanApprox,
 	TanhApprox,
