@@ -223,6 +223,8 @@ void GutterSynth::next(int nSamples) {
               s.y[bank][filter] * s.gains[bank] *
               s.singleGain); // retain singleGain for overall control
         }
+      }
+    }
 
     out2[i] = static_cast<float>(s.duffX);
 
