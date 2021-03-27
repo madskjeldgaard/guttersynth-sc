@@ -224,6 +224,35 @@ void GutterSynth::next(int nSamples) {
               s.singleGain); // retain singleGain for overall control
         }
       }
+    } else { // if filters are disabled then pass directly
+      s.finalY = s.duffX;
+    }
+
+    // DUFFING with audioInput or with OSC?
+    if (s.enableAudioInput) {
+      s.dy = s.finalY - (s.finalY * s.finalY * s.finalY) - (s.c * s.duffY) +
+             s.gamma * inputSample;
+    } else {
+      s.dy = s.finalY - (s.finalY * s.finalY * s.finalY) - (s.c * s.duffY) +
+             s.gamma * std::sin(s.omega * s.t);
+    }
+
+    s.duffY += s.dy;
+    s.dx = s.duffY;
+    s.duffX = Lowpass(s.finalY + s.dx, s.duffX, s.smoothing);
+
+    if (s.filtersOn) { // If the filters are enabled use variable distortion
+                       // (function above)
+      s.duffX = Distortion(s.duffX, s.distortionType, s.finalY);
+      out1[i] = (float)(s.finalY * 0.125); // output the value from the filter,
+                                           // not from the distortion
+    } else { // If the filters are OFF use reset() function to reignite process
+             // (snazzy clicks?)
+      s.duffX = sc_clip(s.duffX, -100.0, 100.0);
+      if (sc_abs(s.duffX) > 99.0) {
+        ResetDuff(s);
+      }
+      out1[i] = static_cast<float>(sc_clip(s.duffX * s.singleGain, -1.0, 1.0));
     }
 
     out2[i] = static_cast<float>(s.duffX);
