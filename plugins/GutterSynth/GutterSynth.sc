@@ -1,4 +1,4 @@
-GutterSynth : MultiOutUGen {
+GutterSynth : UGen {
 	// dt: (0..10)
 	// c: (0.0001..1)
 	// singlegain: (0..1)
@@ -15,12 +15,12 @@ GutterSynth : MultiOutUGen {
 		);
 	}
 
-		init { arg ... theInputs;
-				var numChannelsOut = 2;
-				inputs = theInputs;
+		// init { arg ... theInputs;
+		// 		var numChannelsOut = 2;
+		// 		inputs = theInputs;
 
-				^this.initOutputs(numChannelsOut, rate)
-			}
+		// 		^this.initOutputs(numChannelsOut, rate)
+		// 	}
 		
 	checkInputs {
 		/* TODO */
