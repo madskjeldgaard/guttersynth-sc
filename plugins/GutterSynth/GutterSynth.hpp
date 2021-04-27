@@ -7,6 +7,7 @@
 #include "dcblocker.h"
 #include "distortion.h"
 #include "VariableOversampling.hpp"
+#include "fast_tan.h"
 
 #include <array>
 
@@ -18,6 +19,7 @@ constexpr auto DefaultFilterCount = 24;
 enum class DistortionType {
 	Clipping,
 	VarClip,
+	CubicClipping, 
 	Tanh,
 	AtanApprox,
 	TanhApprox

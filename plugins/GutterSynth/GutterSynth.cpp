@@ -14,16 +14,26 @@ namespace GutterSynth {
 void CalcCoeffs(GutterState& s) {						
 	for (auto bank = 0; bank < s.bankCount; bank++) {
 		for (int filter = 0; filter < s.filterCount; filter++) {
-			s.K[bank][filter] = std::tan(pi * s.filterFreqsArray[bank][filter] / s.Fs);
+                  /* s.K[bank][filter] = std::tan(pi *
+                   * s.filterFreqsArray[bank][filter] / s.Fs); */
+                  s.K[bank][filter] = fasttan<FREQUENCY_FAST>(
+                      pi * s.filterFreqsArray[bank][filter] / s.Fs);
 
-			s.norm[bank][filter] = 1.0 / (1.0 + s.K[bank][filter] / s.Q[filter] + s.K[bank][filter] * s.K[bank][filter]);
+                  s.norm[bank][filter] =
+                      1.0 / (1.0 + s.K[bank][filter] / s.Q[filter] +
+                             s.K[bank][filter] * s.K[bank][filter]);
 
-			s.a0[bank][filter] = s.K[bank][filter] / s.Q[bank] * s.norm[bank][filter];
-			s.a1[bank][filter] = 0.0;
-			s.a2[bank][filter] = -s.a0[bank][filter];
+                  s.a0[bank][filter] =
+                      s.K[bank][filter] / s.Q[bank] * s.norm[bank][filter];
+                  s.a1[bank][filter] = 0.0;
+                  s.a2[bank][filter] = -s.a0[bank][filter];
 
-			s.b1[bank][filter] = 2.0 * (s.K[bank][filter] * s.K[bank][filter] - 1) * s.norm[bank][filter];
-			s.b2[bank][filter] = (1.0 - s.K[bank][filter] / s.Q[bank] + s.K[bank][filter] * s.K[bank][filter]) * s.norm[bank][filter];  	
+                  s.b1[bank][filter] =
+                      2.0 * (s.K[bank][filter] * s.K[bank][filter] - 1) *
+                      s.norm[bank][filter];
+                  s.b2[bank][filter] = (1.0 - s.K[bank][filter] / s.Q[bank] +
+                                        s.K[bank][filter] * s.K[bank][filter]) *
+                                       s.norm[bank][filter];  	
 		}
 	}
 }
