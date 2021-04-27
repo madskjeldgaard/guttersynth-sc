@@ -1,81 +1,78 @@
 // PluginGutterSynth.cpp
 // Mads Kjeldgaard & Scott Carver (mail@madskjeldgaard.dk)
 
-#include "SC_PlugIn.hpp"
-#include "SC_Constants.h"
 #include "GutterSynth.hpp"
+#include "SC_Constants.h"
+#include "SC_PlugIn.hpp"
 
 #include <cmath>
 
-static InterfaceTable* ft;
+static InterfaceTable *ft;
 
 namespace GutterSynth {
 
-void CalcCoeffs(GutterState& s) {						
-	for (auto bank = 0; bank < s.bankCount; bank++) {
-		for (int filter = 0; filter < s.filterCount; filter++) {
-                  /* s.K[bank][filter] = std::tan(pi *
-                   * s.filterFreqsArray[bank][filter] / s.Fs); */
-                  s.K[bank][filter] = fasttan<FREQUENCY_FAST>(
-                      pi * s.filterFreqsArray[bank][filter] / s.Fs);
+void CalcCoeffs(GutterState &s) {
+  for (auto bank = 0; bank < s.bankCount; bank++) {
+    for (int filter = 0; filter < s.filterCount; filter++) {
+      /* s.K[bank][filter] = std::tan(pi *
+       * s.filterFreqsArray[bank][filter] / s.Fs); */
+      s.K[bank][filter] =
+          fasttan<FREQUENCY_FAST>(pi * s.filterFreqsArray[bank][filter] / s.Fs);
 
-                  s.norm[bank][filter] =
-                      1.0 / (1.0 + s.K[bank][filter] / s.Q[filter] +
-                             s.K[bank][filter] * s.K[bank][filter]);
+      s.norm[bank][filter] = 1.0 / (1.0 + s.K[bank][filter] / s.Q[filter] +
+                                    s.K[bank][filter] * s.K[bank][filter]);
 
-                  s.a0[bank][filter] =
-                      s.K[bank][filter] / s.Q[bank] * s.norm[bank][filter];
-                  s.a1[bank][filter] = 0.0;
-                  s.a2[bank][filter] = -s.a0[bank][filter];
+      s.a0[bank][filter] = s.K[bank][filter] / s.Q[bank] * s.norm[bank][filter];
+      s.a1[bank][filter] = 0.0;
+      s.a2[bank][filter] = -s.a0[bank][filter];
 
-                  s.b1[bank][filter] =
-                      2.0 * (s.K[bank][filter] * s.K[bank][filter] - 1) *
-                      s.norm[bank][filter];
-                  s.b2[bank][filter] = (1.0 - s.K[bank][filter] / s.Q[bank] +
-                                        s.K[bank][filter] * s.K[bank][filter]) *
-                                       s.norm[bank][filter];  	
-		}
-	}
+      s.b1[bank][filter] = 2.0 * (s.K[bank][filter] * s.K[bank][filter] - 1) *
+                           s.norm[bank][filter];
+      s.b2[bank][filter] = (1.0 - s.K[bank][filter] / s.Q[bank] +
+                            s.K[bank][filter] * s.K[bank][filter]) *
+                           s.norm[bank][filter];
+    }
+  }
 }
 
-void ResetDuff(GutterState& s) {
-    s.duffX = 0.0;
-    s.duffY = 0.0;
-    s.dx = 0.0;
-    s.dy = 0.0;
-    s.t = 0.0;
+void ResetDuff(GutterState &s) {
+  s.duffX = 0.0;
+  s.duffY = 0.0;
+  s.dx = 0.0;
+  s.dy = 0.0;
+  s.t = 0.0;
 }
 
-void InitGutterState(GutterState& s, double sampleRate) {
-	s.Fs = sampleRate;		
-	s.filtersOn = true;	// turn off for Duffing only
-	s.singleGain = 0.0;
+void InitGutterState(GutterState &s, double sampleRate) {
+  s.Fs = sampleRate;
+  s.filtersOn = true; // turn off for Duffing only
+  s.singleGain = 0.0;
 
-	s.enableAudioInput = false;   // uses the sine forcing for the Duffing by default
+  s.enableAudioInput =
+      false; // uses the sine forcing for the Duffing by default
 
-	s.smoothing = 1.0; // for the lowpass. 1 = no lowpass, 5 = quite lowpassed
-	
-	for (auto bank = 0; bank < s.bankCount; bank++) 
-	{
-		s.gains[bank] = (bank==0) ? 1.0 : 0.0;
-			
-		s.y[bank].fill(0.0);	
-		s.prevX1[bank].fill(0.0); 
-		s.prevX2[bank].fill(0.0); 
-		s.prevY1[bank].fill(0.0); 
-		s.prevY2[bank].fill(0.0);
-	}
+  s.smoothing = 1.0; // for the lowpass. 1 = no lowpass, 5 = quite lowpassed
 
-    ResetDuff(s);
+  for (auto bank = 0; bank < s.bankCount; bank++) {
+    s.gains[bank] = (bank == 0) ? 1.0 : 0.0;
 
-	s.gamma = 0.1;
-	s.omega = 1.25; 
-	s.c = 0.3;
-	s.dt = 1.0;
+    s.y[bank].fill(0.0);
+    s.prevX1[bank].fill(0.0);
+    s.prevX2[bank].fill(0.0);
+    s.prevY1[bank].fill(0.0);
+    s.prevY2[bank].fill(0.0);
+  }
+
+  ResetDuff(s);
+
+  s.gamma = 0.1;
+  s.omega = 1.25;
+  s.c = 0.3;
+  s.dt = 1.0;
 }
 
 inline double Lowpass(double newVal, double oldVal, double smooth) {
-	return (newVal - oldVal) / smooth;
+  return (newVal - oldVal) / smooth;
 }
 
 inline double Distortion(double value, DistortionType type, double finalY) {
@@ -101,32 +98,33 @@ inline double Distortion(double value, DistortionType type, double finalY) {
            (value * value + 3.124);
   default:
     return value;
-        }
+  }
 }
 
-void SetFilter(GutterState& s, int bank, int filter, double freq, double q)
-{
-	// printf("bank: %d    filter: %d    freq: %f      q: %f   \n", bank, filter, freq, q);
-	s.filterFreqsArray[bank][filter] = freq;
-	s.Q[filter] = q;
+void SetFilter(GutterState &s, int bank, int filter, double freq, double q) {
+  // printf("bank: %d    filter: %d    freq: %f      q: %f   \n", bank, filter,
+  // freq, q);
+  s.filterFreqsArray[bank][filter] = freq;
+  s.Q[filter] = q;
 }
 
-void GutterSynth::UpdateFilters()
-{
-    constexpr auto filterParamCount = 2; // freq, q
-    s.filterCount = (mNumInputs - static_cast<int>(Inputs::FilterParams)) / s.bankCount / filterParamCount;
+void GutterSynth::UpdateFilters() {
+  constexpr auto filterParamCount = 2; // freq, q
+  s.filterCount = (mNumInputs - static_cast<int>(Inputs::FilterParams)) /
+                  s.bankCount / filterParamCount;
 
-    for (auto filter = 0; filter < s.filterCount; ++filter) {
-        for (auto bank = 0; bank < s.bankCount; ++bank) {
-            const auto inputOffset = filterParamCount * ((bank * s.filterCount) + filter);
+  for (auto filter = 0; filter < s.filterCount; ++filter) {
+    for (auto bank = 0; bank < s.bankCount; ++bank) {
+      const auto inputOffset =
+          filterParamCount * ((bank * s.filterCount) + filter);
 
-            const auto freq = in((int)Inputs::FilterParams + inputOffset + 0)[0];
-            const auto q = in((int)Inputs::FilterParams + inputOffset + 1)[0];
+      const auto freq = in((int)Inputs::FilterParams + inputOffset + 0)[0];
+      const auto q = in((int)Inputs::FilterParams + inputOffset + 1)[0];
 
-            SetFilter(s, bank, filter, freq, q);
-        }
+      SetFilter(s, bank, filter, freq, q);
     }
-    CalcCoeffs(s);
+  }
+  CalcCoeffs(s);
 }
 
 GutterSynth::GutterSynth() {
@@ -176,6 +174,9 @@ GutterSynth::GutterSynth() {
 
   UpdateFilters();
 
+  s.distortionType =
+      static_cast<DistortionType>(in((int)Inputs::DistortionMethod)[0]);
+
   // @TODO We need to reset our state after next(1) is called?
   next(1);
 }
@@ -197,8 +198,6 @@ void GutterSynth::next(int nSamples) {
       makeSlope(in0((int)Inputs::Smoothing), m_smoothing_past);
 
   s.filtersOn = 0 < in((int)Inputs::ToggleFilters)[0];
-  s.distortionType =
-      static_cast<DistortionType>(in((int)Inputs::DistortionMethod)[0]);
   s.enableAudioInput = 0 < in((int)Inputs::EnableAudioInput)[0];
 
   s.gains[0] = in((int)Inputs::Gains1)[0];
@@ -317,7 +316,7 @@ void GutterSynth::next(int nSamples) {
 } // namespace GutterSynth
 
 PluginLoad(GutterSynthUGens) {
-    // Plugin magic
-    ft = inTable;
-    registerUnit<GutterSynth::GutterSynth>(ft, "GutterSynth", false);
+  // Plugin magic
+  ft = inTable;
+  registerUnit<GutterSynth::GutterSynth>(ft, "GutterSynth", false);
 }
