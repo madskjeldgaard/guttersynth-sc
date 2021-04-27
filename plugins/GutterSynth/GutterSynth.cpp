@@ -85,7 +85,7 @@ inline double Distortion(double value, DistortionType type, double finalY) {
     return sc_max(sc_min(value, 1.0), -1.0);
   case DistortionType::VarClip:
     // the shape argument of this could from 1 to 100
-    return varClip(value, sc_min(1.0, 100.0));
+    return varClip(value, 3);
   case DistortionType::Tanh: // DIST #2: 	tanh
     return fastatan(value);
   case DistortionType::
@@ -183,7 +183,7 @@ GutterSynth::GutterSynth() {
 void GutterSynth::next(int nSamples) {
 
   float *out1 = out((int)Outputs::OutL);
-  float *out2 = out((int)Outputs::OutR);
+  /* float *out2 = out((int)Outputs::OutR); */
 
   SlopeSignal<float> slopedGamma =
       makeSlope(in0((int)Inputs::Gamma), m_gamma_past);
@@ -293,10 +293,10 @@ void GutterSynth::next(int nSamples) {
       out1[i] = static_cast<float>(sc_clip(s.duffX * s.singleGain, -1.0, 1.0));
     }
 
-    out2[i] = static_cast<float>(s.duffX);
+    /* out2[i] = static_cast<float>(s.duffX); */
 
     out1[i] = dcfilter1.process(out1[i]);
-    out2[i] = dcfilter2.process(out2[i]);
+    /* out2[i] = dcfilter2.process(out2[i]); */
 
     s.t += s.dt;
 
