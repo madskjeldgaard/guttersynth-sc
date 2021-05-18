@@ -5,7 +5,7 @@ categories:: UGens > Generators > Chaotic
 
 description::
 
-GutterSynth is a physical modelling ish synthesizer using chaotic coupled duffing oscillators resonating through a modal synthesis type of physical modelling system. The oscillators are used to excite two banks of (fairly expensive but nicely sounding biquad) resonant bandpass filters to create the impression of acoustics. Each of these banks' gains and resonant frequencies are set at initialisation.
+GutterSynth is a physical modelling synthesizer based on chaotic, coupled duffing oscillators resonating through a modal synthesis type of physical modelling system. The oscillators are used to excite two banks of (fairly expensive but nicely sounding biquad) resonant bandpass filters to create the impression of acoustics.
 
 Gutter Synth was originally written in Java and Max/MSP by Tom Mudd. It was ported to C++ and SuperCollider by Scott Carver and Mads Kjeldgaard. In the porting process, the code was cleaned up and optimized as well as made safer to use for the end user.
 
@@ -27,7 +27,6 @@ ARGUMENT::dt
 The rate of the internal oscillator. High values result in a higher frequency.
 
 ARGUMENT::singlegain
-
 Gain of the synth overall
 
 ARGUMENT::smoothing
@@ -80,11 +79,9 @@ A list of 24 values for the resonant frequencies of bank 2.
 ARGUMENT::qs2
 A list of 24 values for the q values of the filters of bank 2. Values between 1.0 and 1000 work nicely. Be careful around the low values. Depending on the other parameters, values under 10 may be dangerous and cause filter explosions.
 
-
 examples::
 
 code::
-
 
 // A mono gutter synth example that uses an external audio input 
 (
