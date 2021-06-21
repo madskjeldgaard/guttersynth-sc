@@ -1,26 +1,142 @@
 class:: GutterSynth
-summary:: Gutter synthesis, a physical ish synth using coupled duffing oscillators
-related:: TODO
-categories:: UGens>TODO
+summary:: A chaotic physical modelling synth
+related:: Classes/Resonz
+categories:: UGens > Generators > Chaotic
 
 description::
 
-Gutter synthesis, a physical ish synth using coupled duffing oscillators
+GutterSynth is a physical modelling ish synthesizer using chaotic coupled duffing oscillators resonating through a modal synthesis type of physical modelling system. The oscillators are used to excite two banks of (fairly expensive but nicely sounding biquad) resonant bandpass filters to create the impression of acoustics. Each of these banks' gains and resonant frequencies are set at initialisation.
 
+Gutter Synth was originally written in Java and Max/MSP by Tom Mudd. It was ported to C++ and SuperCollider by Scott Carver and Mads Kjeldgaard. In the porting process, the code was cleaned up and optimized as well as made safer to use for the end user.
 
 classmethods::
 
-method::ar, kr
+method::ar
 
-argument::TODO
+ARGUMENT::gamma
 
-argument::TODO
+One of the chaotic parameters. Values between 0 and 10 work nicely.
 
+ARGUMENT::omega
+One of the chaotic parameters. Values between 0.0000001 and 1.0 work nicely.
+
+ARGUMENT::c
+A sort of damping parameter. Values between 0 and 1 work nicely.
+
+ARGUMENT::dt
+The rate of the internal oscillator. High values result in a higher frequency.
+
+ARGUMENT::singlegain
+
+Gain of the synth overall
+
+ARGUMENT::smoothing
+Apply a low pass filter to the chaotic oscillator to interpolate it's values and make it more smooth. Values between 0 and 5 work nicely, but you can experiment beyond those values.
+
+ARGUMENT::togglefilters
+Turn filters on or off. You will most likely want this to be on. If set to off, you will get a clipped raw output from the duffing oscillator.
+
+ARGUMENT::distortionmethod
+Choose a distortion algorithm. This is set at init and cannot be changed at run time.
+
+0 = Hard clipping
+1 = A slightly softer clip,
+2 = Tanh-based distortion,
+3 = Atan approximated distortion,
+4 = Tanh approximated distortion
+
+ARGUMENT::oversampling
+
+Amount of oversampling. More oversampling results in more CPU usage but reduces aliasing from the distortion.
+
+0 = No oversampling,
+1 = x2,
+2 = x4,
+3 = x8,
+4 = x16
+
+ARGUMENT::enableaudioinput
+
+Boolean. If false, will use an internal, chaotic sine wave oscillator, if true it will use whatever audio is at the audioinput argument.
+
+ARGUMENT::audioinput
+An audio input that may be used to excite the synth.
+
+ARGUMENT::gains1
+A list of 24 values for the gains of bank 1.
+
+ARGUMENT::gains2
+A list of 24 values for the gains of bank 2.
+
+ARGUMENT::freqs1
+A list of 24 values for the resonant frequencies of bank 1.
+
+ARGUMENT::qs1
+A list of 24 values for the q values of the filters of bank 1. Values between 0.00001 and 1000 work nicely.
+
+ARGUMENT::freqs2
+A list of 24 values for the resonant frequencies of bank 2.
+
+ARGUMENT::qs2
+A list of 24 values for the q values of the filters of bank 2. Values between 0.00001 and 1000 work nicely.
 
 examples::
 
 code::
 
-{ GutterSynth.ar(/* TODO */) }.play
+
+// A mono gutter synth example that uses an external audio input 
+(
+Ndef(\gutterTest, {
+	var sig, freq1, freq2, pitch;
+	var mod, omega, damp, rate, gain, soften, gain1, gain2, q1, q2;
+
+	mod = \mod.kr(0.2, spec:[0,10]);
+	omega = \omega.kr(0.0002, spec:ControlSpec(0.0001, 1, \exponential));
+	damp = \damp.kr(0.01, spec:ControlSpec(0.0001, 1, \exponential));
+	rate = \rate.kr(0.03, spec:[0, 5]);
+	gain = \gain.kr(1.4, spec:[0, 3.5]);
+	soften = \soften.kr(1, spec:[0, 5]);
+	gain1 = \gain1.kr(1.5, spec:[0.0, 2.0, \lin]);
+	gain2 = \gain2.kr(1.5, spec:[0.0, 2.0, \lin]);
+	q1 = \q.kr(20, spec:ControlSpec(0.5, 800, \exponential));
+
+	// freq = [56, 174, 194, 97, 139, 52, 363, 118, 353, 629];
+	pitch = \pitchShift.kr(0.25, spec: [0.05,2.0]).lag;
+	freq1 = pitch * [ 104.08913805616, 272.0241439869, 142.5394121681, 740.98235420089, 3231.1092775615, 598.48984613932, 564.11122601617, 152.53849023618, 4773.6198870775, 798.26171948236, 729.54452005837, 734.37542510625, 661.89936380362, 133.46101940276, 1715.6115033359, 11658.962024239, 6408.5610397899, 11775.302108311, 857.52846512925, 2020.251581889, 14168.220304686, 192.17654523236, 326.55730188427, 4386.8490423436];
+	freq2 = freq1 * Array.rand(freq1.size, 0.95,1.0);
+
+	// q = q ! freq1.size;
+	q1 = Array.rand(freq1.size, 0.95,1.0) * q1;
+	q2 = Array.rand(freq1.size, 0.95,1.0) * q1;
+
+
+	sig = GutterSynth.ar(
+		gamma:         mod,
+		omega:         omega,
+		c:             damp,
+		dt:         rate,
+		singlegain: gain,
+		smoothing:  soften,
+		togglefilters: 1,
+		distortionmethod: \distortionmethod.kr(1, spec: [0,4,\lin,1]),
+		oversampling: 1,
+		enableaudioinput: 0,
+		audioinput: SinOsc.ar(SinOsc.ar(LFNoise2.ar(30)*100).exprange(100.0,2500.0)),
+		gains1:     gain1,
+		gains2:     gain2,
+		freqs1:     `freq1,
+		qs1:         `q1,
+		freqs2:     `freq2,
+		qs2:         `q2,
+	);
+
+	sig = Pan2.ar(sig, \pan.kr(0));
+	sig = Limiter.ar(sig);
+    
+}).mold(2).play;
+)
+
+Ndef(\gutterTest).gui;
 
 ::
