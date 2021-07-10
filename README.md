@@ -1,12 +1,10 @@
 # GutterSynth
 
-Author: Mads Kjeldgaard & Scott Carver
-
-Gutter synthesis, a physical ish synth using coupled duffing oscillators. A port of [Tom Mudd's Max/Java program](https://github.com/tommmmudd/guttersynthesis).
-
 Gutter synthesis, a physical ish synth using coupled duffing oscillators resonating through a modal synthesis type of physical modelling system. 
 
-Gutter Synth was originally written in [Max/Java program and designed by Tom Mudd](https://github.com/tommmmudd/guttersynthesis). It was ported to C++ and SuperCollider by Scott Carver and Mads Kjeldgaard and was in the process cleaned up, made safer to use and optimizations were made to increase performance of the synth.
+Gutter Synth was originally written in [Max/Java and designed by Tom Mudd](https://github.com/tommmmudd/guttersynthesis). 
+
+It was ported to C++ and SuperCollider by Scott Carver and Mads Kjeldgaard and was in the process cleaned up, made safer to use and optimizations were made to increase performance of the synth.
 
 ### Requirements
 
@@ -22,24 +20,15 @@ Clone the project:
     mkdir build
     cd build
 
-Then, use CMake to configure and build it:
+Then, use CMake to configure, build and install to your extensions directory:
 
-    cmake .. -DCMAKE_BUILD_TYPE=Release
+    cmake .. -DCMAKE_BUILD_TYPE=Release -DSC_PATH=../supercollider -DCMAKE_INSTALL_PREFIX=/path/to/extensions
     cmake --build . --config Release
     cmake --build . --config Release --target install
 
-You may want to manually specify the install location in the first step to point it at your
-SuperCollider extensions directory: add the option `-DCMAKE_INSTALL_PREFIX=/path/to/extensions`.
 
 It's expected that the SuperCollider repo is cloned at `../supercollider` relative to this repo. If
-it's not: add the option `-DSC_PATH=/path/to/sc/source`.
-
-### Developing
-
-Use the command in `regenerate` to update CMakeLists.txt when you add or remove files from the
-project. You don't need to run it if you only change the contents of existing files. You may need to
-edit the command if you add, remove, or rename plugins, to match the new plugin paths. Run the
-script with `--help` to see all available options.
+it's not: change the option to wherever the source code is: `-DSC_PATH=/path/to/sc/source`.
 
 ### Acknowledgements
 
