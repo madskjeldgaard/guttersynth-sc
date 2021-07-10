@@ -4,6 +4,10 @@ Author: Mads Kjeldgaard & Scott Carver
 
 Gutter synthesis, a physical ish synth using coupled duffing oscillators. A port of [Tom Mudd's Max/Java program](https://github.com/tommmmudd/guttersynthesis).
 
+Gutter synthesis, a physical ish synth using coupled duffing oscillators resonating through a modal synthesis type of physical modelling system. 
+
+Gutter Synth was originally written in [Max/Java program and designed by Tom Mudd](https://github.com/tommmmudd/guttersynthesis). It was ported to C++ and SuperCollider by Scott Carver and Mads Kjeldgaard and was in the process cleaned up, made safer to use and optimizations were made to increase performance of the synth.
+
 ### Requirements
 
 - CMake >= 3.5
@@ -36,3 +40,9 @@ Use the command in `regenerate` to update CMakeLists.txt when you add or remove 
 project. You don't need to run it if you only change the contents of existing files. You may need to
 edit the command if you add, remove, or rename plugins, to match the new plugin paths. Run the
 script with `--help` to see all available options.
+
+### Acknowledgements
+
+Thank you:
+- Tom Mudd for the original design in Java. 
+- Jatin Chowdhury for the oversampling code.

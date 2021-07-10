@@ -118,6 +118,7 @@ void GutterSynth::UpdateFilters() {
       const auto inputOffset =
           filterParamCount * ((bank * s.filterCount) + filter);
 
+      // @TODO These should be smoothed
       const auto freq = in((int)Inputs::FilterParams + inputOffset + 0)[0];
       const auto q = in((int)Inputs::FilterParams + inputOffset + 1)[0];
 
