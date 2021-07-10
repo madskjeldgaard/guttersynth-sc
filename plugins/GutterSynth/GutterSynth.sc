@@ -1,10 +1,4 @@
 GutterSynth : UGen {
-	// dt: (0..10)
-	// c: (0.0001..1)
-	// singlegain: (0..1)
-	// smoothing: (0..)
-	// togglefilters: [0,1]
-	
 	*ar { |gamma=0.1, omega=0.02, c=0.1, dt=5, singlegain=1.0, smoothing=0.5, 
 			togglefilters=0, distortionmethod=0, oversampling=1, enableaudioinput=0, audioinput, gains1=1, gains2=0,
 			freqs1, qs1, freqs2, qs2|
@@ -18,6 +12,7 @@ GutterSynth : UGen {
 
       // Index of first array argument. The rate of the array style arguments will be checked seperately
       var firstArrayArgument = 11;
+      var expectedArrayArgRate = [\scalar];
 
       // This dictionary maps what rates are allowed for each parameter of the UGen
       var allowedRates = IdentityDictionary[
@@ -39,7 +34,7 @@ GutterSynth : UGen {
       ];
 
       // Iterate over all singular inputs (not the arrayed inputs for the bank settings) and check if they comply
-      inputs.do{|input, inputNum| 
+      inputs.do{|input, inputNum|
         if(inputNum < firstArrayArgument, {
           var name = this.argNameForInputAt(inputNum);
           var inrate = input.rate;
@@ -60,7 +55,9 @@ GutterSynth : UGen {
       // Check the rate of the arrays that are input for the bank settings
       inputs[firstArrayArgument..].do{|array|
         array.do{|argument|
-          if(argument.rate != \scalar, { ^"All array arguments for %'s bank arguments have to be scalar".format(this.name) })
+          if(expectedArrayArgRate.indexOfEqual(argument.rate).notNil.not, { 
+            ^"All array arguments for %'s bank arguments have to be one of: %".format(this.name, expectedArrayArgRate) 
+          })
         }
       };
 
