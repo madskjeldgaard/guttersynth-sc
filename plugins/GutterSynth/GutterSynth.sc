@@ -36,15 +36,6 @@ GutterSynth : UGen {
 
         \enableaudioinput -> [\scalar],
 
-        // Banks are scalar only for now
-        \gains1 -> [\scalar, \control],          
-        \gains2 -> [\scalar, \control],          
-
-        \freqs1 -> [\scalar],          
-        \qs1 -> [\scalar],          
-        \freqs2 -> [\scalar],          
-        \qs2 -> [\scalar]
-
       ];
 
       // Iterate over all singular inputs (not the arrayed inputs for the bank settings) and check if they comply
@@ -57,7 +48,7 @@ GutterSynth : UGen {
           var rateIsExpected = expected.indexOfEqual(inrate).notNil;
 
           // "Num args: %".format(allowedRates.size).postln;
-          input.class.postln; name.postln; inrate.postln; expected.postln; inputNum.postln;
+          // input.class.postln; name.postln; inrate.postln; expected.postln; inputNum.postln;
 
           if(rateIsExpected.not, {
             ^"%'s input % not % (it is %)".format(this.name, name, expected, inrate)
