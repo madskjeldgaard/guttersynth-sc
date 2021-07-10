@@ -14,15 +14,58 @@ GutterSynth : UGen {
 		);
 	}
 
-		// init { arg ... theInputs;
-		// 		var numChannelsOut = 2;
-		// 		inputs = theInputs;
-
-		// 		^this.initOutputs(numChannelsOut, rate)
-		// 	}
-		
 	checkInputs {
-		/* TODO */
+
+		// This dictionary maps what rates are allowed for each parameter of the UGen
+        var allowedRates = IdentityDictionary[
+          \audioinput -> [\scalar, \control, \audio],          
+
+          \gamma -> [\scalar, \control], 
+          \omega -> [\scalar, \control], 
+          \c -> [\scalar, \control], 
+          \dt -> [\scalar, \control], 
+          \singlegain -> [\scalar, \control], 
+          \smoothing -> [\scalar, \control], 
+          \togglefilters -> [\scalar], 
+          \oversampling -> [\scalar], 
+
+          \distortionmethod -> [\scalar, \control], 
+
+          \enableaudioinput -> [\scalar],
+
+          // Banks are scalar only for now
+          \gains1 -> [\scalar],          
+          \freqs1 -> [\scalar],          
+          \qs1 -> [\scalar],          
+
+          \gains2 -> [\scalar],          
+          \freqs2 -> [\scalar],          
+          \qs2 -> [\scalar]
+
+        ];
+        
+
+		// Iterate over all inputs and check if they comply
+		inputs.do{|input, inputNum| 
+			var name = this.argNameForInputAt(inputNum);
+			var inrate = input.rate;
+			var expected = allowedRates[name];
+            
+            // @FIXME: Why does this become nil?
+            if(inrate.isNil.not and: { name.isNil.not }, { 
+              var rateIsExpected = expected.indexOfEqual(inrate).notNil;
+
+              // "Num args: %".format(allowedRates.size).postln;
+              // input.class.postln; name.postln; inrate.postln; expected.postln; inputNum.postln;
+
+              if(rateIsExpected.not, {
+                ^"%'s input % not % (it is %)".format(this.name, name, expected, inrate).error
+              })
+
+            })
+			
+		};
+
 		^this.checkValidInputs;
 	}
 }
