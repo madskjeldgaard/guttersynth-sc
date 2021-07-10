@@ -14,58 +14,65 @@ GutterSynth : UGen {
 		);
 	}
 
-	checkInputs {
+    checkInputs {
 
-		// This dictionary maps what rates are allowed for each parameter of the UGen
-        var allowedRates = IdentityDictionary[
-          \audioinput -> [\scalar, \control, \audio],          
+      // Index of first array argument. The rate of the array style arguments will be checked seperately
+      var firstArrayArgument = 11;
 
-          \gamma -> [\scalar, \control], 
-          \omega -> [\scalar, \control], 
-          \c -> [\scalar, \control], 
-          \dt -> [\scalar, \control], 
-          \singlegain -> [\scalar, \control], 
-          \smoothing -> [\scalar, \control], 
-          \togglefilters -> [\scalar], 
-          \oversampling -> [\scalar], 
+      // This dictionary maps what rates are allowed for each parameter of the UGen
+      var allowedRates = IdentityDictionary[
+        \audioinput -> [\scalar, \control, \audio],          
 
-          \distortionmethod -> [\scalar, \control], 
+        \gamma -> [\scalar, \control], 
+        \omega -> [\scalar, \control], 
+        \c -> [\scalar, \control], 
+        \dt -> [\scalar, \control], 
+        \singlegain -> [\scalar, \control], 
+        \smoothing -> [\scalar, \control], 
+        \togglefilters -> [\scalar], 
+        \oversampling -> [\scalar], 
 
-          \enableaudioinput -> [\scalar],
+        \distortionmethod -> [\scalar, \control], 
 
-          // Banks are scalar only for now
-          \gains1 -> [\scalar],          
-          \freqs1 -> [\scalar],          
-          \qs1 -> [\scalar],          
+        \enableaudioinput -> [\scalar],
 
-          \gains2 -> [\scalar],          
-          \freqs2 -> [\scalar],          
-          \qs2 -> [\scalar]
+        // Banks are scalar only for now
+        \gains1 -> [\scalar, \control],          
+        \gains2 -> [\scalar, \control],          
 
-        ];
-        
+        \freqs1 -> [\scalar],          
+        \qs1 -> [\scalar],          
+        \freqs2 -> [\scalar],          
+        \qs2 -> [\scalar]
 
-		// Iterate over all inputs and check if they comply
-		inputs.do{|input, inputNum| 
-			var name = this.argNameForInputAt(inputNum);
-			var inrate = input.rate;
-			var expected = allowedRates[name];
-            
-            // @FIXME: Why does this become nil?
-            if(inrate.isNil.not and: { name.isNil.not }, { 
-              var rateIsExpected = expected.indexOfEqual(inrate).notNil;
+      ];
 
-              // "Num args: %".format(allowedRates.size).postln;
-              // input.class.postln; name.postln; inrate.postln; expected.postln; inputNum.postln;
+      // Iterate over all singular inputs (not the arrayed inputs for the bank settings) and check if they comply
+      inputs.do{|input, inputNum| 
+        if(inputNum < firstArrayArgument, {
+          var name = this.argNameForInputAt(inputNum);
+          var inrate = input.rate;
+          var expected = allowedRates[name];
 
-              if(rateIsExpected.not, {
-                ^"%'s input % not % (it is %)".format(this.name, name, expected, inrate).error
-              })
+          var rateIsExpected = expected.indexOfEqual(inrate).notNil;
 
-            })
-			
-		};
+          // "Num args: %".format(allowedRates.size).postln;
+          input.class.postln; name.postln; inrate.postln; expected.postln; inputNum.postln;
 
-		^this.checkValidInputs;
-	}
+          if(rateIsExpected.not, {
+            ^"%'s input % not % (it is %)".format(this.name, name, expected, inrate)
+          })
+        })
+
+      };
+
+      // Check the rate of the arrays that are input for the bank settings
+      inputs[firstArrayArgument..].do{|array|
+        array.do{|argument|
+          if(argument.rate != \scalar, { ^"All array arguments for %'s bank arguments have to be scalar".format(this.name) })
+        }
+      };
+
+      ^this.checkValidInputs;
+    }
 }
