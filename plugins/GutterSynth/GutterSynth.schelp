@@ -9,6 +9,8 @@ GutterSynth is a physical modelling synthesizer based on chaotic, coupled duffin
 
 Gutter Synth was originally written in Java and Max/MSP by Tom Mudd. It was ported to C++ and SuperCollider by Scott Carver and Mads Kjeldgaard. In the porting process, the code was cleaned up and optimized as well as made safer to use for the end user.
 
+WARNING::Be careful when modulating the bank parameters (all the ones that are supplied by arrays). If you want to change these values after init, you must use a lag to avoid filter explosions.::
+
 classmethods::
 
 method::ar
@@ -68,16 +70,16 @@ ARGUMENT::gains2
 A list of 24 values for the gains of bank 2.
 
 ARGUMENT::freqs1
-A list of 24 values for the resonant frequencies of bank 1.
+A list of 24 values for the resonant frequencies of bank 1. NOTE::Use LINK::#Classes/Lag:: if supplying control rate parameters here. Audio rate not allowed.::
 
 ARGUMENT::qs1
-A list of 24 values for the q values of the filters of bank 1. Values between 10.0 and 1000 work nicely. Be careful around the low values. Depending on the other parameters, values under 10 may be dangerous and cause filter explosions.
+A list of 24 values for the q values of the filters of bank 1. Values between 10.0 and 1000 work nicely. Be careful around the low values. Depending on the other parameters, values under 10 may be dangerous and cause filter explosions. NOTE::Use LINK::#Classes/Lag:: if supplying control rate parameters here. Audio rate not allowed.::
 
 ARGUMENT::freqs2
-A list of 24 values for the resonant frequencies of bank 2.
+A list of 24 values for the resonant frequencies of bank 2. NOTE::Use LINK::#Classes/Lag:: if supplying control rate parameters here. Audio rate not allowed.::
 
 ARGUMENT::qs2
-A list of 24 values for the q values of the filters of bank 2. Values between 1.0 and 1000 work nicely. Be careful around the low values. Depending on the other parameters, values under 10 may be dangerous and cause filter explosions.
+A list of 24 values for the q values of the filters of bank 2. Values between 1.0 and 1000 work nicely. Be careful around the low values. Depending on the other parameters, values under 10 may be dangerous and cause filter explosions. NOTE::Use LINK::#Classes/Lag:: if supplying control rate parameters here. Audio rate not allowed.::
 
 examples::
 

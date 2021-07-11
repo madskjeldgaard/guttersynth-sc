@@ -12,7 +12,7 @@ GutterSynth : UGen {
 
       // Index of first array argument. The rate of the array style arguments will be checked seperately
       var firstArrayArgument = 11;
-      var expectedArrayArgRate = [\scalar];
+      var expectedArrayArgRate = [\scalar, \control];
 
       // This dictionary maps what rates are allowed for each parameter of the UGen
       var allowedRates = IdentityDictionary[
@@ -56,7 +56,9 @@ GutterSynth : UGen {
       inputs[firstArrayArgument..].do{|array|
         array.do{|argument|
           if(expectedArrayArgRate.indexOfEqual(argument.rate).notNil.not, { 
-            ^"All array arguments for %'s bank arguments have to be one of: %".format(this.name, expectedArrayArgRate) 
+            ^"All array arguments for %'s bank arguments have to be one of: %".format(
+              this.name, expectedArrayArgRate
+            ) 
           })
         }
       };
