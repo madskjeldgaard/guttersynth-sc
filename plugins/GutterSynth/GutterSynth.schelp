@@ -11,6 +11,17 @@ Gutter Synth was originally written in Java and Max/MSP by Tom Mudd. It was port
 
 WARNING::Be careful when modulating the bank parameters (all the ones that are supplied by arrays). If you want to change these values after init, you must use a lag to avoid filter explosions.::
 
+ 
+SUBSECTION::Differences from the original GutterSynth
+
+The overall design of Tom Mudd's original algorithm have generally been kept faithful to the original, but in the process of porting the code from the original GutterSynth written in Java, a number of smaller and bigger tweaks were made. 
+
+Some of the expensive functions were replaced by more effective approximations, the distortion algorithms were cleaned up and some of them replaced with new ones and variable oversampling was added as well. 
+
+The original had two outputs: One for the sound and one for the modulation signal but the latter was removed in this port to improve safety (sometimes these values were between +/- 100). 
+
+Internal flushing was added to the duffing oscillator to avoid a build up of NaN's that would cause it to stop oscillating as well as the Biquad filters to avoid them recirculating bad values (that would make them explode or blast out DC).
+
 classmethods::
 
 method::ar

@@ -4,7 +4,7 @@ Gutter synthesis, a physical ish synth using coupled duffing oscillators resonat
 
 Gutter Synth was originally written in [Max/Java and designed by Tom Mudd](https://github.com/tommmmudd/guttersynthesis). 
 
-It was ported to C++ and SuperCollider by Scott Carver and Mads Kjeldgaard and was in the process cleaned up, made safer to use and optimizations were made to increase performance of the synth.
+It was ported to C++ and SuperCollider by Scott Carver and Mads Kjeldgaard and was in the process cleaned up, made safer to use and optimizations were made to increase performance of the synth. See the help file for more information.
 
 ### Requirements
 
