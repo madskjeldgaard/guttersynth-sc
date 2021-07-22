@@ -14,6 +14,12 @@ Instructions for most systems:
 2. Unzip the contents in your extensions directory (If you don't know where this is, open up SuperCollider and evaluate `Platform.userExtensionDir` - the path will be posted in the post window).
 3. Recompile class library.
 
+For users of Linux distributions based on Arch Linux, it is possible to install using an AUR helper:
+
+```bash 
+paru -S supercollider-guttersynth-git
+```
+
 ### Compiling
 
 #### Requirements
