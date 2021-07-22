@@ -7,7 +7,7 @@ description::
 
 GutterSynth is a physical modelling synthesizer based on chaotic, coupled duffing oscillators resonating through a modal synthesis type of physical modelling system. The oscillators are used to excite two banks of (fairly expensive but nicely sounding biquad) resonant bandpass filters to create the impression of acoustics.
 
-Gutter Synth was originally written in Java and Max/MSP by Tom Mudd. It was ported to C++ and SuperCollider by Scott Carver and Mads Kjeldgaard. In the porting process, the code was cleaned up and optimized as well as made safer to use for the end user.
+Gutter Synth was originally written in Java and Max/MSP by Tom Mudd. It was ported to C++ and SuperCollider by Scott Carver and Mads Kjeldgaard.
 
 WARNING::Be careful when modulating the bank parameters (all the ones that are supplied by arrays). If you want to change these values after init, you must use a lag to avoid filter explosions.::
 
